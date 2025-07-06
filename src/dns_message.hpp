@@ -8,6 +8,8 @@ struct dns_header {
     uint16_t id;
     union {
         uint16_t flags;
+        uint8_t flags_0;
+        uint8_t flags_1;
         struct {
             uint16_t query_response: 1;
             uint16_t opcode: 4;
@@ -38,8 +40,10 @@ class DNSMessage {
         ~DNSMessage(){}
         void from_buffer(buffer_t& buffer){
             const uint16_t* header_ptr = reinterpret_cast<const uint16_t*>(buffer);
+            const uint8_t* byte_header_ptr = reinterpret_cast<const uint8_t*>(buffer);
             this->header.id = ntohs(header_ptr[0]);
-            this->header.flags = ntohs(header_ptr[1]);
+            this->header.flags_0 = byte_header_ptr[2];
+            this->header.flags_1 = byte_header_ptr[3];
             this->header.question_count = ntohs(header_ptr[2]);
             this->header.answer_count = ntohs(header_ptr[3]);
             this->header.authority_count = ntohs(header_ptr[4]);
@@ -58,8 +62,10 @@ class DNSMessage {
         }
         uint16_t to_buffer(buffer_t& buffer){
             uint16_t* header_ptr = reinterpret_cast<uint16_t*>(buffer);
+            uint8_t* byte_header_ptr = reinterpret_cast<uint8_t*>(buffer);
             header_ptr[0] = htons(this->header.id);
-            header_ptr[1] = htons(this->header.flags);
+            byte_header_ptr[2] = this->header.flags_0;
+            byte_header_ptr[3] = this->header.flags_1;
             header_ptr[2] = htons(this->header.question_count);
             header_ptr[3] = htons(this->header.answer_count);
             header_ptr[4] = htons(this->header.authority_count);
@@ -70,7 +76,7 @@ class DNSMessage {
         void print_header(){
             std::cout << "Header: " << std::endl;
             std::cout << "\tID: " << this->header.id << std::endl;
-            std::cout << "\tQuery/Response: " << (this->header.query_response ? "Query" : "Response") << std::endl;
+            std::cout << "\tQuery/Response: " << (this->header.query_response) << " " << (!this->header.query_response ? "Query" : "Response") << std::endl;
             std::cout << "\tOpcode: " << this->header.opcode << std::endl;
             std::cout << "\tAuthoritative Answer: " << this->header.authoritative_answer << std::endl;
             std::cout << "\tTruncated Message: " << this->header.truncated_message << std::endl;

@@ -72,10 +72,9 @@ int main() {
         // Create an empty response
         buffer_t response = {};
         uint16_t response_size = dns_response.to_buffer(response);
-        response[response_size] = '\0';
 
         // Send response
-        if (sendto(udpSocket, response, response_size+1, 0, reinterpret_cast<struct sockaddr*>(&clientAddress), sizeof(clientAddress)) == -1) {
+        if (sendto(udpSocket, response, response_size, 0, reinterpret_cast<struct sockaddr*>(&clientAddress), sizeof(clientAddress)) == -1) {
             perror("Failed to send response");
         }
     }
