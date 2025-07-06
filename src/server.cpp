@@ -68,7 +68,6 @@ int main() {
         std::cout << "Response: " << std::endl;
         dns_response.print_header();
 
-
         // Create an empty response
         buffer_t response = {};
         uint16_t response_size = dns_response.to_buffer(response);
