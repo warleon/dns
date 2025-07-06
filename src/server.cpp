@@ -60,17 +60,10 @@ int main() {
         DNSMessage dns_question(buffer);
         DNSMessage dns_response(dns_question);
 
-        buffer[bytesRead] = '\0';
-        std::cout << "Received " << bytesRead << " bytes: " << buffer << std::endl;
-
-        std::cout << "Received question: " << std::endl;
-        dns_question.print_header();
-        std::cout << "Response: " << std::endl;
-        dns_response.print_header();
 
         // Create an empty response
         buffer_t response = {};
-        uint16_t response_size = dns_response.to_buffer(response);
+        uint16_t response_size = dns_response.serialize(response);
 
         // Send response
         if (sendto(udpSocket, response, response_size, 0, reinterpret_cast<struct sockaddr*>(&clientAddress), sizeof(clientAddress)) == -1) {
