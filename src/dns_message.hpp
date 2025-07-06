@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <bit>
 #include "types.hpp"
 
 struct dns_header {
@@ -19,8 +20,23 @@ struct dns_header {
     uint16_t additional_count;
 };
 
-void nhmemcpy(void* dst, const void* src, size_t n){
-    memcpy(dst, src, n);
+void n2h_memcpy(void* dst, const void* src, size_t n){
+    if ( std::endian::native == std::endian::big){
+        memcpy(dst, src, n);
+    } else {
+        for (size_t i = 0; i < n; i++) {
+            ((uint8_t*)dst)[i] = ((const uint8_t*)src)[n-i-1];
+        }
+    }
+}
+void h2n_memcpy(void* dst, const void* src, size_t n){
+    if ( std::endian::native == std::endian::big){
+        memcpy(dst, src, n);
+    } else {
+        for (size_t i = 0; i < n; i++) {
+            ((uint8_t*)dst)[i] = ((const uint8_t*)src)[n-i-1];
+        }
+    }
 }
 
 class DNSMessage {
@@ -35,7 +51,7 @@ class DNSMessage {
         }
         ~DNSMessage(){}
         void from_buffer(buffer_t& buffer){
-            nhmemcpy(&this->header, buffer, sizeof(dns_header));
+            h2n_memcpy(&this->header, buffer, sizeof(dns_header));
         }
         void from_question(DNSMessage& query){
             this->header.id = query.header.id;
@@ -49,7 +65,7 @@ class DNSMessage {
             //this->header.reserved = query.header.reserved;
         }
         uint16_t to_buffer(buffer_t& buffer){
-            nhmemcpy(buffer, &this->header, sizeof(this->header));
+            n2h_memcpy(buffer, &this->header, sizeof(this->header));
             return sizeof(this->header);
         }
 };
