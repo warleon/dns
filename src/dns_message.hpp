@@ -6,6 +6,7 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <cstring>
 #include "types.hpp"
 
 // Offset	Octet	|0	                            |1	                            |2	                            |3
@@ -117,8 +118,9 @@ struct dns_question
             offset += label_size;
             this->domain_name.push_back(label);
         }
-        this->question_type = ntohs(uint16_t(buffer[offset]));
-        this->question_class = ntohs(uint16_t(buffer[offset + 2]));
+        const uint16_t* buffer_ptr = reinterpret_cast<const uint16_t*>(buffer + offset);
+        this->question_type = ntohs(buffer_ptr[0]);
+        this->question_class = ntohs(buffer_ptr[1]);
         return offset + 4;
     }
 
@@ -131,11 +133,21 @@ struct dns_question
         }
         buffer[offset] = '\0';
         offset++;
-        uint16_t &question_type = *(uint16_t *)&buffer[offset];
-        question_type = htons(this->question_type);
-        uint16_t &question_class = *(uint16_t *)&buffer[offset + 2];
-        question_class = htons(this->question_class);
+        uint16_t* buffer_ptr = reinterpret_cast<uint16_t*>(buffer + offset);
+        buffer_ptr[0] = htons(this->question_type);
+        buffer_ptr[1] = htons(this->question_class);
         return offset + 4;
+    }
+
+    std::string to_string()
+    {
+        std::string result = "";
+        for (auto &label : this->domain_name)
+        {
+            result += std::string(label.name, label.length);
+            result += " ";
+        }
+        return result;
     }
 };
 
@@ -165,15 +177,9 @@ public:
 
     void from_question(DNSMessage &query)
     {
-        this->header.id = query.header.id;
+        memcpy(&this->header, &query.header, sizeof(dns_header));
         this->header.query_response = 1;
-        // all 0 for the moment
-        // this->header.opcode = query.header.opcode;
-        // this->header.authoritative_answer = query.header.authoritative_answer;
-        // this->header.truncated_message = query.header.truncated_message;
-        // this->header.recursion_desired = query.header.recursion_desired;
-        // this->header.recursion_available = query.header.recursion_available;
-        // this->header.reserved = query.header.reserved;
+        this->questions = query.questions;
     }
     uint16_t serialize(buffer_t buffer)
     {
