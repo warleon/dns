@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include <vector>
 #include "types.hpp"
 
 // Offset	Octet	|0	                            |1	                            |2	                            |3
@@ -30,7 +31,7 @@ struct dns_header
     uint16_t authority_count;          // 64-79
     uint16_t additional_count;         // 80-95
 
-    void from_buffer(buffer_t &buffer)
+    uint16_t from_buffer(const buffer_t buffer)
     {
         const uint16_t *header_ptr = reinterpret_cast<const uint16_t *>(buffer);
         this->id = ntohs(header_ptr[0]);
@@ -50,9 +51,10 @@ struct dns_header
         this->answer_count = ntohs(header_ptr[3]);
         this->authority_count = ntohs(header_ptr[4]);
         this->additional_count = ntohs(header_ptr[5]);
+        return sizeof(*this);
     }
 
-    uint16_t to_buffer(buffer_t &buffer)
+    uint16_t to_buffer(buffer_t buffer)
     {
         uint16_t *header_ptr = reinterpret_cast<uint16_t *>(buffer);
         header_ptr[0] = htons(this->id);
@@ -68,15 +70,92 @@ struct dns_header
     }
 };
 
+struct dns_domain_name_label
+{
+    uint8_t length;
+    char *name;
+
+    uint16_t from_buffer(const buffer_t buffer)
+    {
+        if (buffer[0] == '\0')
+        {
+            this->length = 0;
+            this->name = nullptr;
+            return 0;
+        }
+        this->length = buffer[0];
+        this->name = buffer + 1;
+        return this->length + 1;
+    }
+
+    uint16_t to_buffer(buffer_t buffer)
+    {
+        buffer[0] = this->length;
+        memcpy(buffer + 1, this->name, this->length);
+        return this->length +1;
+    }
+};
+
+struct dns_question
+{
+    std::list<dns_domain_name_label> domain_name;
+    uint16_t question_type;
+    uint16_t question_class;
+
+    uint16_t from_buffer(const buffer_t buffer)
+    {
+        uint16_t offset = 0;
+        for (int i = 0; i < buffer_size - sizeof(dns_header); i++)
+        {
+            dns_domain_name_label label;
+            uint16_t label_size = label.from_buffer(buffer + offset);
+            if (label_size == 0)
+            {
+                offset++;
+                break;
+            }
+            offset += label_size;
+            this->domain_name.push_back(label);
+        }
+        this->question_type = ntohs(uint16_t(buffer[offset]));
+        this->question_class = ntohs(uint16_t(buffer[offset + 2]));
+        return offset + 4;
+    }
+
+    uint16_t to_buffer(buffer_t buffer)
+    {
+        uint16_t offset=0;
+        for (auto &label : this->domain_name)
+        {
+            offset += label.to_buffer(buffer + offset);
+        }
+        buffer[offset] = '\0';
+        offset++;
+        uint16_t &question_type = *(uint16_t *)&buffer[offset];
+        question_type = htons(this->question_type);
+        uint16_t &question_class = *(uint16_t *)&buffer[offset + 2];
+        question_class = htons(this->question_class);
+        return offset + 4;
+    }
+};
+
 class DNSMessage
 {
-public:
     dns_header header = {};
-    std::list<std::string> questions = {};
+    std::vector<dns_question> questions = {};
+public:
     DNSMessage() {}
-    DNSMessage(buffer_t &buffer)
+    DNSMessage(buffer_t buffer)
     {
-        this->header.from_buffer(buffer);
+        uint16_t offset = 0;
+        offset += this->header.from_buffer(buffer);
+        questions.reserve(this->header.question_count);
+        for (int i = 0; i < this->header.question_count; i++)
+        {
+            dns_question question;
+            offset += question.from_buffer(buffer + offset);
+            questions.emplace_back(question);
+        }
     }
     DNSMessage(DNSMessage &query)
     {
@@ -96,9 +175,14 @@ public:
         // this->header.recursion_available = query.header.recursion_available;
         // this->header.reserved = query.header.reserved;
     }
-    uint16_t serialize(buffer_t &buffer)
+    uint16_t serialize(buffer_t buffer)
     {
-        return this->header.to_buffer(buffer);
+        uint16_t offset = 0;
+        offset += this->header.to_buffer(buffer);
+        for (auto &question : this->questions)
+        {
+            offset += question.to_buffer(buffer + offset);
+        }
+        return offset;
     }
-
 };
