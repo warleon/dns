@@ -1,5 +1,14 @@
 #pragma once
 
+#include <cstdint>
+#include <bit>
+#include <iostream>
+#include <string>
+#include <list>
+#include <vector>
+#include <cstring>
+#include <arpa/inet.h>
+
 typedef char* buffer_t;
 const unsigned int buffer_size = 512;
 
@@ -33,4 +42,3 @@ enum DNSRecordClass {
     HS = 4,     // Hesiod [Dyer 87]
     ANY = 255   // any class (QCLASS only)
 };
-

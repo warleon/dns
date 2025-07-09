@@ -3,8 +3,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include "dns_message.hpp"
-#include "types.hpp"
+#include "dns/message.hpp"
 
 int main()
 {
@@ -67,11 +66,11 @@ int main()
             break;
         }
 
-        DNSMessage dns_question(buffer);
-        DNSMessage dns_response(dns_question);
+        DNS::Message dns_question(buffer);
+        DNS::Message dns_response(dns_question);
 
         // Create an empty response
-        uint16_t response_size = dns_response.serialize(response);
+        uint16_t response_size = dns_response.to_buffer(response);
 
         // Send response
         if (sendto(udpSocket, response, response_size, 0, reinterpret_cast<struct sockaddr *>(&clientAddress), sizeof(clientAddress)) == -1)
