@@ -30,14 +30,23 @@ namespace DNS
     }
 
     void Message::resolve(){
-        this->header.query_response = 1;
+        this->header.query_response = RESPONSE;
+        this->header.authoritative_answer = 0;
+        this->header.truncated_message = 0;
+        this->header.recursion_available = 0;
+        this->header.reserved = 0;
+        this->header.authentic_data = 0;
+        this->header.checking_disabled = 0;
+        this->header.response_code = 0;
         this->header.answer_count = this->header.question_count;
-        for (int i = 0; i < this->header.question_count; i++)
+        this->header.authority_count = 0;
+        this->header.additional_count = 0;
+        for (const auto &question : this->questions)
         {
             Answer answer;
-            answer.domain_name = this->questions[i].domain_name;
-            answer.domain_type = this->questions[i].domain_type;
-            answer.domain_class = this->questions[i].domain_class;
+            answer.domain_name = question.domain_name;
+            answer.domain_type = question.domain_type;
+            answer.domain_class = question.domain_class;
             answer.ttl = 3600;
             answer.data_length = 4;
             answer.data = new uint8_t[4];
@@ -48,6 +57,7 @@ namespace DNS
             answer.data[3] = 1;
             this->answers.emplace_back(answer);
         }
+        
     }
     uint16_t Message::to_buffer(buffer_t buffer)
     {
@@ -56,6 +66,10 @@ namespace DNS
         for (auto &question : this->questions)
         {
             offset += question.to_buffer(buffer + offset);
+        }
+        for (auto &answer : this->answers)
+        {
+            offset += answer.to_buffer(buffer + offset);
         }
         return offset;
     }

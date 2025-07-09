@@ -13,6 +13,11 @@
 typedef uint8_t* buffer_t;
 const unsigned int buffer_size = 512;
 
+enum DNSQueryResponse {
+    QUERY = 0,
+    RESPONSE = 1
+};
+
 enum DNSRecordType {
     A = 1,      // a host address
     NS = 2,     // an authoritative name server

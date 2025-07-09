@@ -28,13 +28,13 @@ namespace DNS
         uint16_t* buffer_short_ptr = reinterpret_cast<uint16_t*>(buffer + offset);
         buffer_short_ptr[0] = htons(this->domain_type);
         buffer_short_ptr[1] = htons(this->domain_class);
-        offset += 4;
+        offset += 2*sizeof(uint16_t);
         uint32_t* buffer_int_ptr = reinterpret_cast<uint32_t*>(buffer + offset);
         buffer_int_ptr[0] = htonl(this->ttl);
-        offset += 4;
+        offset += sizeof(uint32_t);
         uint16_t* buffer_short_ptr2 = reinterpret_cast<uint16_t*>(buffer + offset);
         buffer_short_ptr2[0] = htons(this->data_length);
-        offset += 2;
+        offset += sizeof(uint16_t);
         memcpy(buffer + offset, this->data, this->data_length);
         offset += this->data_length;
         return offset;
