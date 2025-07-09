@@ -6,21 +6,10 @@ namespace DNS
     uint16_t Question::from_buffer(const buffer_t buffer)
     {
         uint16_t offset = 0;
-        for (int i = 0; i < buffer_size - sizeof(Header); i++)
-        {
-            Label label;
-            uint16_t label_size = label.from_buffer(buffer + offset);
-            if (label_size == 0)
-            {
-                offset++;
-                break;
-            }
-            offset += label_size;
-            this->domain_name.push_back(label);
-        }
+        offset += Label::list_from_buffer(buffer + offset, this->domain_name);
         const uint16_t* buffer_ptr = reinterpret_cast<const uint16_t*>(buffer + offset);
-        this->question_type = ntohs(buffer_ptr[0]);
-        this->question_class = ntohs(buffer_ptr[1]);
+        this->domain_type = ntohs(buffer_ptr[0]);
+        this->domain_class = ntohs(buffer_ptr[1]);
         return offset + 4;
     }
 
@@ -34,8 +23,8 @@ namespace DNS
         buffer[offset] = '\0';
         offset++;
         uint16_t* buffer_ptr = reinterpret_cast<uint16_t*>(buffer + offset);
-        buffer_ptr[0] = htons(this->question_type);
-        buffer_ptr[1] = htons(this->question_class);
+        buffer_ptr[0] = htons(this->domain_type);
+        buffer_ptr[1] = htons(this->domain_class);
         return offset + 4;
     }
 
