@@ -66,11 +66,14 @@ int main()
             break;
         }
 
-        DNS::Message dns_question(buffer);
-        DNS::Message dns_response(dns_question);
+        DNS::Message dns_message(buffer);
+
+        std::cout << "Received:\n" << dns_message.to_string() << std::endl;
+        dns_message.resolve();
+        std::cout << "Sending:\n" << dns_message.to_string() << std::endl;
 
         // Create an empty response
-        uint16_t response_size = dns_response.to_buffer(response);
+        uint16_t response_size = dns_message.to_buffer(response);
 
         // Send response
         if (sendto(udpSocket, response, response_size, 0, reinterpret_cast<struct sockaddr *>(&clientAddress), sizeof(clientAddress)) == -1)

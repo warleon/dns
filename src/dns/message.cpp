@@ -3,7 +3,6 @@
 namespace DNS
 {
 
-
     Message::Message() {}
     Message::Message(const buffer_t buffer)
     {
@@ -22,17 +21,33 @@ namespace DNS
         }
         return offset;
     }
-    Message::Message(Message &query)
-    {
-        this->from_question(query);
+    Message::~Message() {
+        for (auto &data : this->answers_data)
+        {
+            delete[] data;
+            data = nullptr;
+        }
     }
-    Message::~Message() {}
 
-    void Message::from_question(Message &query)
-    {
-        memcpy(&this->header, &query.header, sizeof(Header));
+    void Message::resolve(){
         this->header.query_response = 1;
-        this->questions = query.questions;
+        this->header.answer_count = this->header.question_count;
+        for (int i = 0; i < this->header.question_count; i++)
+        {
+            Answer answer;
+            answer.domain_name = this->questions[i].domain_name;
+            answer.domain_type = this->questions[i].domain_type;
+            answer.domain_class = this->questions[i].domain_class;
+            answer.ttl = 3600;
+            answer.data_length = 4;
+            answer.data = new uint8_t[4];
+            this->answers_data.emplace_back(answer.data);
+            answer.data[0] = 127;
+            answer.data[1] = 0;
+            answer.data[2] = 0;
+            answer.data[3] = 1;
+            this->answers.emplace_back(answer);
+        }
     }
     uint16_t Message::to_buffer(buffer_t buffer)
     {
@@ -43,5 +58,26 @@ namespace DNS
             offset += question.to_buffer(buffer + offset);
         }
         return offset;
+    }
+    std::string Message::to_string()
+    {
+        std::string result = "";
+        if (this->questions.size())
+        {
+            result += "Questions:\n";
+            for (auto &question : this->questions)
+            {
+                result += "\t" + question.to_string() + "\n";
+            }
+        }
+        if (this->answers.size())
+        {
+            result += "Answers:\n";
+            for (auto &answer : this->answers)
+            {
+                result += "\t" + answer.to_string() + "\n";
+            }
+        }
+        return result;
     }
 }

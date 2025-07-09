@@ -25,7 +25,10 @@ namespace DNS
 
     std::string Question::to_string()
     {
-        return Label::list_to_string(this->domain_name);
+        std::string result = "";
+        result += Label::list_to_string(this->domain_name);
+        result +=  std::to_string(this->domain_type) + " " + std::to_string(this->domain_class);
+        return result;
     }
 
 }
