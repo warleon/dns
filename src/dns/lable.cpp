@@ -17,7 +17,7 @@ namespace DNS
         return this->length + 1;
     }
 
-    uint16_t Label::to_buffer(buffer_t buffer)
+    uint16_t Label::to_buffer(buffer_t buffer) const
     {
         buffer[0] = this->length;
         memcpy(buffer + 1, this->name, this->length);
@@ -40,5 +40,26 @@ namespace DNS
             labels.push_back(label);
         }
         return offset;
+    }
+    uint16_t Label::list_to_buffer(const list_t &labels, buffer_t buffer)
+    {
+        uint16_t offset = 0;
+        for (auto &label : labels)
+        {
+            offset += label.to_buffer(buffer + offset);
+        }
+        buffer[offset] = '\0';
+        offset++;
+        return offset;
+    }
+    std::string Label::list_to_string(const list_t &labels)
+    {
+        std::string result = "";
+        for (auto &label : labels)
+        {
+            result += std::string(reinterpret_cast<char*>(label.name), label.length);
+            result += " ";
+        }
+        return result;
     }
 }

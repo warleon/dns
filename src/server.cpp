@@ -50,10 +50,10 @@ int main()
     }
 
     int bytesRead;
-    buffer_t buffer = new char[buffer_size];
+    buffer_t buffer = new uint8_t[buffer_size];
     socklen_t clientAddrLen = sizeof(clientAddress);
 
-    buffer_t response = new char[buffer_size];
+    buffer_t response = new uint8_t[buffer_size];
     while (true)
     {
         memset(buffer, 0, buffer_size);

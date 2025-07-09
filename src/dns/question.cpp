@@ -16,12 +16,7 @@ namespace DNS
     uint16_t Question::to_buffer(buffer_t buffer)
     {
         uint16_t offset=0;
-        for (auto &label : this->domain_name)
-        {
-            offset += label.to_buffer(buffer + offset);
-        }
-        buffer[offset] = '\0';
-        offset++;
+        offset += Label::list_to_buffer(this->domain_name, buffer + offset);
         uint16_t* buffer_ptr = reinterpret_cast<uint16_t*>(buffer + offset);
         buffer_ptr[0] = htons(this->domain_type);
         buffer_ptr[1] = htons(this->domain_class);
@@ -30,13 +25,7 @@ namespace DNS
 
     std::string Question::to_string()
     {
-        std::string result = "";
-        for (auto &label : this->domain_name)
-        {
-            result += std::string(label.name, label.length);
-            result += " ";
-        }
-        return result;
+        return Label::list_to_string(this->domain_name);
     }
 
 }
