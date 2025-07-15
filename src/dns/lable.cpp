@@ -27,7 +27,7 @@ namespace DNS
     {
         buffer[offset] = this->length;
         memcpy(buffer + offset + 1, this->name, this->length);
-        return this->length + 1;
+        return offset + this->length + 1;
     }
 
     uint16_t Label::list_from_buffer(const buffer_t buffer, list_t &labels, uint16_t offset)
