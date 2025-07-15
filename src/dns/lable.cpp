@@ -14,8 +14,8 @@ namespace DNS
         }
         if(buffer[offset] == 0xc0) // pointer
         {
-            this->length = 0;
-            this->name = nullptr; // TODO: implement pointer
+            uint16_t pointer = (buffer[offset] & 0x3F) << 8 | buffer[offset + 1];
+            this->from_buffer(buffer, pointer);
             return offset + 2;
         }
         this->length = buffer[offset];
