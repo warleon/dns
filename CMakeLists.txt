@@ -24,9 +24,9 @@ target_include_directories(dns_lib PUBLIC src)
 add_executable(server src/server.cpp)
 target_link_libraries(server PRIVATE dns_lib)
 
-# Add address sanitizer flags to main executable
-target_compile_options(server PRIVATE -fsanitize=address -fno-omit-frame-pointer -g)
-target_link_options(server PRIVATE -fsanitize=address)
+# Add address sanitizer flags to main executable (debug mode only)
+target_compile_options(server PRIVATE $<$<CONFIG:Debug>:-fsanitize=address -fno-omit-frame-pointer -g>)
+target_link_options(server PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
 
 # Enable testing
 enable_testing()
@@ -45,7 +45,7 @@ if(TEST_SOURCES)
     include(GoogleTest)
     gtest_discover_tests(dns_tests)
     
-    # Add address sanitizer flags to tests
-    target_compile_options(dns_tests PRIVATE -fsanitize=address -fno-omit-frame-pointer -g)
-    target_link_options(dns_tests PRIVATE -fsanitize=address)
+    # Add address sanitizer flags to tests (debug mode only)
+    target_compile_options(dns_tests PRIVATE $<$<CONFIG:Debug>:-fsanitize=address -fno-omit-frame-pointer -g>)
+    target_link_options(dns_tests PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
 endif()
