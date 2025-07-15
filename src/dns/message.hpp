@@ -19,9 +19,9 @@ struct Message
 
     ~Message();
 
-    uint16_t from_buffer(const buffer_t buffer);
+    uint16_t from_buffer(const buffer_t buffer, uint16_t offset );
     void resolve();
-    uint16_t to_buffer(buffer_t buffer);
+    uint16_t to_buffer(buffer_t buffer, uint16_t offset );
     std::string to_string();
 };
 }

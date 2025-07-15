@@ -6,17 +6,16 @@ namespace DNS
     Message::Message() {}
     Message::Message(const buffer_t buffer)
     {
-        this->from_buffer(buffer);
+        this->from_buffer(buffer, 0);
     }
-    uint16_t Message::from_buffer(const buffer_t buffer)
+    uint16_t Message::from_buffer(const buffer_t buffer, uint16_t offset)
     {
-        uint16_t offset = 0;
-        offset += this->header.from_buffer(buffer);
+        offset = this->header.from_buffer(buffer, offset);
         questions.reserve(this->header.question_count);
         for (int i = 0; i < this->header.question_count; i++)
         {
             Question question;
-            offset += question.from_buffer(buffer + offset);
+            offset = question.from_buffer(buffer, offset);
             questions.emplace_back(question);
         }
         return offset;
@@ -59,17 +58,16 @@ namespace DNS
         }
         
     }
-    uint16_t Message::to_buffer(buffer_t buffer)
+    uint16_t Message::to_buffer(buffer_t buffer, uint16_t offset)
     {
-        uint16_t offset = 0;
-        offset += this->header.to_buffer(buffer);
+        offset = this->header.to_buffer(buffer, offset);
         for (auto &question : this->questions)
         {
-            offset += question.to_buffer(buffer + offset);
+            offset = question.to_buffer(buffer, offset);
         }
         for (auto &answer : this->answers)
         {
-            offset += answer.to_buffer(buffer + offset);
+            offset = answer.to_buffer(buffer, offset);
         }
         return offset;
     }

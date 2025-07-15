@@ -3,28 +3,26 @@
 namespace DNS
 {
 
-    uint16_t Answer::from_buffer(const buffer_t buffer)
+    uint16_t Answer::from_buffer(const buffer_t buffer, uint16_t offset)
     {
-        uint16_t offset = 0;
-        offset += Label::list_from_buffer(buffer + offset, this->domain_name);
+        offset = Label::list_from_buffer(buffer, this->domain_name, offset);
         const uint16_t* buffer_short_ptr = reinterpret_cast<const uint16_t*>(buffer + offset);
         this->domain_type = ntohs(buffer_short_ptr[0]);
         this->domain_class = ntohs(buffer_short_ptr[1]);
-        offset += 4;
+        offset += 2*sizeof(uint16_t);
         const uint32_t* buffer_int_ptr = reinterpret_cast<const uint32_t*>(buffer + offset);
         this->ttl = ntohl(buffer_int_ptr[0]);
-        offset += 4;
+        offset += sizeof(uint32_t);
         const uint16_t* buffer_short_ptr2 = reinterpret_cast<const uint16_t*>(buffer + offset);
         this->data_length = ntohs(buffer_short_ptr2[0]);
-        offset += 2;
+        offset += sizeof(uint16_t);
         this->data = buffer + offset;
         offset += this->data_length;
         return offset;
     }
-    uint16_t Answer::to_buffer(buffer_t buffer)
+    uint16_t Answer::to_buffer(buffer_t buffer, uint16_t offset)
     {
-        uint16_t offset = 0;
-        offset += Label::list_to_buffer(this->domain_name, buffer + offset);
+        offset = Label::list_to_buffer(this->domain_name, buffer, offset);
         uint16_t* buffer_short_ptr = reinterpret_cast<uint16_t*>(buffer + offset);
         buffer_short_ptr[0] = htons(this->domain_type);
         buffer_short_ptr[1] = htons(this->domain_class);

@@ -27,8 +27,8 @@ struct Header
     uint16_t authority_count;          // 64-79
     uint16_t additional_count;         // 80-95
 
-    uint16_t from_buffer(const buffer_t buffer);
-    uint16_t to_buffer(buffer_t buffer);
+    uint16_t from_buffer(const buffer_t buffer, uint16_t offset );
+    uint16_t to_buffer(buffer_t buffer, uint16_t offset );
 };
 
 }

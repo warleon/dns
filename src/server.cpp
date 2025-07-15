@@ -73,7 +73,7 @@ int main()
         std::cout << "Sending:\n" << dns_message.to_string() << std::endl;
 
         // Create an empty response
-        uint16_t response_size = dns_message.to_buffer(response);
+        uint16_t response_size = dns_message.to_buffer(response,0);
 
         // Send response
         if (sendto(udpSocket, response, response_size, 0, reinterpret_cast<struct sockaddr *>(&clientAddress), sizeof(clientAddress)) == -1)
