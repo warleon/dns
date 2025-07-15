@@ -33,3 +33,8 @@ TEST_F(DNSHeaderTest, DefaultHeaderInitialization) {
     EXPECT_EQ(0, header.authority_count);
     EXPECT_EQ(0, header.additional_count);
 }
+
+// failing test: alwais fails, tests nothing
+TEST_F(DNSHeaderTest, FailingTest) {
+    FAIL();
+}
